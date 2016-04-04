@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+      <file>Resources/about.ico</file>
+      <file>Resources/open.ico</file>
+      <file>Resources/remove.ico</file>
+      <file>Resources/clear.ico</file>
+      <file>Resources/save.png</file>
+      <file>Resources/save_all.ico</file>
+      <file>Resources/hide.png</file>
+    </qresource>
+</RCC>
