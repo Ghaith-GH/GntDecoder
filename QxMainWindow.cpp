@@ -492,7 +492,7 @@ void QxMainWindow::preview()
 			quint32 uWidth = uchar(rawData.at(2)) + quint32(uchar(rawData.at(3))) * (1 << 8);
 			quint32 uHeight = uchar(rawData.at(4)) + quint32(uchar(rawData.at(5))) * (1 << 8);
 			quint32 uArcLen = uWidth > uHeight ? uWidth : uHeight;
-			uDecodedByteNum = 10;
+			uDecodedByteNum = 6;
 
 			// save data to a pre-defined white image(all pixel values are pre-defined to be 255)
 			cv::Mat characterImage = 255 * cv::Mat::ones(uArcLen, uArcLen, CV_8UC1);
