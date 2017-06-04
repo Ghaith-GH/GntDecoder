@@ -86,17 +86,20 @@ bool QxMainWindow::decodeFiles(const QStringList& fileList, const QString& strDe
 		}
 
 		//Decode .gnt file specified by strFileName.
-		QByteArray rawData = file.readAll();
-		file.close();
-		quint32 uDecodedByteNum = 0;
-		const quint32 uTotalByteNum = rawData.size();
-		while (uDecodedByteNum != uTotalByteNum)
+		quint64 uDecodedByteNum = 0;
+		quint64 uDecodedByteNumTotal = 0;
+		quint64 uTotalByteNum = file.bytesAvailable();
+		QByteArray rawData;
+		while (uDecodedByteNumTotal != uTotalByteNum)
 		{
-			quint32 uTagCode = uchar(rawData.at(5 + uDecodedByteNum)) + quint32(uchar(rawData.at(4 + uDecodedByteNum))) * (1 << 8);
-			quint32 uWidth = uchar(rawData.at(6 + uDecodedByteNum)) + quint32(uchar(rawData.at(7 + uDecodedByteNum))) * (1 << 8);
-			quint32 uHeight = uchar(rawData.at(8 + uDecodedByteNum)) + quint32(uchar(rawData.at(9 + uDecodedByteNum))) * (1 << 8);
+			rawData = file.read(4); // get data size of this character
+			quint32 uDataLen = uchar(rawData.at(0)) + quint32(uchar(rawData.at(1))) * (1 << 8) + quint32(uchar(rawData.at(2))) * (1 << 16) + quint32(uchar(rawData.at(3))) * (1 << 24);
+			rawData = file.read(uDataLen - 4); //4 bytes have beed decoded already
+			quint32 uTagCode = uchar(rawData.at(0)) + quint32(uchar(rawData.at(1))) * (1 << 8);
+			quint32 uWidth = uchar(rawData.at(2)) + quint32(uchar(rawData.at(3))) * (1 << 8);
+			quint32 uHeight = uchar(rawData.at(4)) + quint32(uchar(rawData.at(5))) * (1 << 8);
 			quint32 uArcLen = uWidth > uHeight ? uWidth : uHeight;
-			uDecodedByteNum += 10;
+			uDecodedByteNum = 6;
 			/* A character should be presented in a square. However, decoded images are, in most cases, rectangle.
 			  Therefore, a decoded character image is padded to a square whose length of the side is uArcLen (longer edge of the rectangle). 
 			  As the background of the decoded images is white (pixel value 255 for 8-bit grayscale images), all the padded pixels are set to be 255.  */
@@ -123,7 +126,9 @@ bool QxMainWindow::decodeFiles(const QStringList& fileList, const QString& strDe
 			cv::resize(img, img, imageSize);
 			cv::imwrite(strSaveFileName.toStdString(), img);
 			m_ImageLabelMap[strSaveFileName] = m_LabelCodeMap[uTagCode];
+			uDecodedByteNumTotal += uDataLen;
 		}
+		file.close();
 	}
 	// Save the .txt files for different software
 	saveMappingFile(strDestinationPath, appType);
@@ -466,8 +471,6 @@ void QxMainWindow::preview()
 	{
 		return;
 	}
-	QByteArray rawData = file.readAll();
-	file.close();
 
 	cv::Size imageSize(640,448);	//the image used to preview some of the characters
 	const unsigned uCharacterWidth = 64;	//the width of each character in the preview image
@@ -483,10 +486,13 @@ void QxMainWindow::preview()
 	{
 		for (quint32 j = 0; j != uCharacterPerCol; ++j)
 		{
-			quint32 uWidth = uchar(rawData.at(6 + uDecodedByteNum)) + quint32(uchar(rawData.at(7 + uDecodedByteNum))) * (1 << 8);
-			quint32 uHeight = uchar(rawData.at(8 + uDecodedByteNum)) + quint32(uchar(rawData.at(9 + uDecodedByteNum))) * (1 << 8);
+			QByteArray rawData = file.read(4);
+			quint32 uDataLen = uchar(rawData.at(0)) + quint32(uchar(rawData.at(1))) * (1 << 8) + quint32(uchar(rawData.at(2))) * (1 << 16) + quint32(uchar(rawData.at(3))) * (1 << 24);
+			rawData = file.read(uDataLen - 4); //4 bytes have beed decoded already
+			quint32 uWidth = uchar(rawData.at(2)) + quint32(uchar(rawData.at(3))) * (1 << 8);
+			quint32 uHeight = uchar(rawData.at(4)) + quint32(uchar(rawData.at(5))) * (1 << 8);
 			quint32 uArcLen = uWidth > uHeight ? uWidth : uHeight;
-			uDecodedByteNum += 10;
+			uDecodedByteNum = 10;
 
 			// save data to a pre-defined white image(all pixel values are pre-defined to be 255)
 			cv::Mat characterImage = 255 * cv::Mat::ones(uArcLen, uArcLen, CV_8UC1);
@@ -518,6 +524,7 @@ void QxMainWindow::preview()
 			}
 		}
 	}
+	file.close();
 
 	QImage previewImage(img.data, img.cols, img.rows, img.step, QImage::Format_Grayscale8);
 	QPixmap pixmap = QPixmap::fromImage(previewImage);

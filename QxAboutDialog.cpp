@@ -33,14 +33,10 @@ void QxAboutDialog::initDialog()
 
     QPointer<QLabel> pInfoLabel = new QLabel;
 	QString strMessage("<br>\
-<big><i>Version:</i></big>  0.1.03<br>\
-<big><i>Release date:</i></big>  30.Mar.2016<br><br>\
+<big><i>Version:</i></big>  0.1.04<br>\
+<big><i>Release date:</i></big>  26.May.2017<br><br>\
 <big><i>Release note:</i></big><br>\
-1. Modified image format for different software.<br>\
-2. Changed data structure for NVidia DIGITS.<br>\
-3. Fixed a trivial bug.<br>\
-4. Changed menubar strcture.<br>\
-5. Changed icons.");
+1. Modified for reading huge files.<br>");
 
 	pInfoLabel->setTextFormat(Qt::RichText);
 	pInfoLabel->setText(strMessage);
