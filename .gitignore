@@ -1,0 +1,13 @@
+
+*.user
+*.vcxproj
+*.vcxproj*
+*.sdf
+*.opensdf
+debug/
+release/
+.qmake*
+*.sln
+*.v12*
+GeneratedFiles/
+*.aps

@@ -61,6 +61,7 @@ bool QxMainWindow::decodeFiles(const QStringList& fileList, const QString& strDe
 	QProgressDialog progressDlg("Decoding files...", "Cancel", 0, uFileAmount, this);
 	progressDlg.setWindowModality(Qt::WindowModal);
 	progressDlg.setMinimumDuration(0);
+	quint64 uTempIndex = 0;
 	for (QStringList::size_type i = 0; i != fileList.size(); ++i)
 	{
 		//Update progress dialog
@@ -100,6 +101,7 @@ bool QxMainWindow::decodeFiles(const QStringList& fileList, const QString& strDe
 			quint32 uHeight = uchar(rawData.at(4)) + quint32(uchar(rawData.at(5))) * (1 << 8);
 			quint32 uArcLen = uWidth > uHeight ? uWidth : uHeight;
 			uDecodedByteNum = 6;
+			++uTempIndex;
 			/* A character should be presented in a square. However, decoded images are, in most cases, rectangle.
 			  Therefore, a decoded character image is padded to a square whose length of the side is uArcLen (longer edge of the rectangle). 
 			  As the background of the decoded images is white (pixel value 255 for 8-bit grayscale images), all the padded pixels are set to be 255.  */
@@ -121,7 +123,9 @@ bool QxMainWindow::decodeFiles(const QStringList& fileList, const QString& strDe
 				m_LabelCodeMap[uTagCode] = uNewLabel;
 			}
 			// image normalization and saving
-			QString strSaveFileName = getSaveImageName(strImagePath, uTagCode, i + 1, appType);
+			// For 1.0train-gb1.gnt, it's a single file containing a lot samples, i+i is not correct index for image names
+			// Temporary solution on 8th May, to update
+			QString strSaveFileName = getSaveImageName(strImagePath, uTagCode, uTempIndex, appType);
 			strSaveFileName += "." + imageFormat;
 			cv::resize(img, img, imageSize);
 			cv::imwrite(strSaveFileName.toStdString(), img);
